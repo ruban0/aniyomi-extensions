@@ -1,6 +1,5 @@
 package eu.kanade.tachiyomi.animeextension.en.aniplay
 
-import android.app.Application
 import android.net.Uri
 import android.util.Base64
 import android.util.Log
@@ -8,7 +7,6 @@ import android.widget.Toast
 import androidx.preference.ListPreference
 import androidx.preference.PreferenceScreen
 import androidx.preference.SwitchPreferenceCompat
-import eu.kanade.tachiyomi.animesource.ConfigurableAnimeSource
 import eu.kanade.tachiyomi.animesource.model.SAnime
 import eu.kanade.tachiyomi.animesource.model.SEpisode
 import eu.kanade.tachiyomi.animesource.model.Track
@@ -26,8 +24,6 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
 import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -35,7 +31,7 @@ import java.util.Locale
 import java.util.concurrent.locks.ReentrantLock
 
 @Suppress("unused")
-class AniPlay : AniListAnimeHttpSource(), ConfigurableAnimeSource {
+class AniPlay : AniListAnimeHttpSource() {
     override val name = "AniPlay"
     override val lang = "en"
 
@@ -43,10 +39,6 @@ class AniPlay : AniListAnimeHttpSource(), ConfigurableAnimeSource {
         get() = "https://${preferences.getString(PREF_DOMAIN_KEY, PREF_DOMAIN_DEFAULT)}"
 
     private val playlistUtils by lazy { PlaylistUtils(client, headers) }
-
-    private val preferences by lazy {
-        Injekt.get<Application>().getSharedPreferences("source_$id", 0x0000)
-    }
 
     /* ================================= AniList configurations ================================= */
 
@@ -58,17 +50,6 @@ class AniPlay : AniListAnimeHttpSource(), ConfigurableAnimeSource {
         val httpUrl = animeDetailUrl.toHttpUrl()
 
         return httpUrl.pathSegments[2].toInt()
-    }
-
-    override fun getPreferredTitleLanguage(): TitleLanguage {
-        val preferredLanguage = preferences.getString(PREF_TITLE_LANGUAGE_KEY, PREF_TITLE_LANGUAGE_DEFAULT)
-
-        return when (preferredLanguage) {
-            "romaji" -> TitleLanguage.ROMAJI
-            "english" -> TitleLanguage.ENGLISH
-            "native" -> TitleLanguage.NATIVE
-            else -> TitleLanguage.ROMAJI
-        }
     }
 
     private val baseHost: String get() = "${preferences.getString(PREF_DOMAIN_KEY, PREF_DOMAIN_DEFAULT)}"
@@ -497,23 +478,6 @@ class AniPlay : AniListAnimeHttpSource(), ConfigurableAnimeSource {
             }
         }.also(screen::addPreference)
 
-        ListPreference(screen.context).apply {
-            key = PREF_TITLE_LANGUAGE_KEY
-            title = "Preferred title language"
-            entries = PREF_TITLE_LANGUAGE_ENTRIES
-            entryValues = PREF_TITLE_LANGUAGE_ENTRY_VALUES
-            setDefaultValue(PREF_TITLE_LANGUAGE_DEFAULT)
-            summary = "%s"
-
-            setOnPreferenceChangeListener { _, newValue ->
-                val selected = newValue as String
-                val index = findIndexOfValue(selected)
-                val entry = entryValues[index] as String
-                Toast.makeText(screen.context, "Refresh your anime library to apply changes", Toast.LENGTH_LONG).show()
-                preferences.edit().putString(key, entry).commit()
-            }
-        }.also(screen::addPreference)
-
         SwitchPreferenceCompat(screen.context).apply {
             key = PREF_MARK_FILLER_EPISODE_KEY
             title = "Mark filler episodes"
@@ -523,6 +487,8 @@ class AniPlay : AniListAnimeHttpSource(), ConfigurableAnimeSource {
                 preferences.edit().putBoolean(key, newValue as Boolean).commit()
             }
         }.also(screen::addPreference)
+
+        super.setupPreferenceScreen(screen)
     }
 
     /* =================================== AniPlay Utilities =================================== */
@@ -578,11 +544,6 @@ class AniPlay : AniListAnimeHttpSource(), ConfigurableAnimeSource {
         private val PREF_TYPE_ENTRY_VALUES = arrayOf("sub", "softsub", "dub", "dubtitles")
         private const val PREF_TYPE_DEFAULT = "softsub"
         private const val TYPE_UNKNOWN = "Other"
-
-        private const val PREF_TITLE_LANGUAGE_KEY = "title_language"
-        private val PREF_TITLE_LANGUAGE_ENTRIES = arrayOf("Romaji", "English", "Native")
-        private val PREF_TITLE_LANGUAGE_ENTRY_VALUES = arrayOf("romaji", "english", "native")
-        private const val PREF_TITLE_LANGUAGE_DEFAULT = "romaji"
 
         private const val PREF_MARK_FILLER_EPISODE_KEY = "mark_filler_episode"
         private const val PREF_MARK_FILLER_EPISODE_DEFAULT = true
