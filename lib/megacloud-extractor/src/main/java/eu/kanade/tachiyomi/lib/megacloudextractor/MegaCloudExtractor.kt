@@ -44,8 +44,8 @@ class MegaCloudExtractor(
 
     companion object {
         private val SERVER_URL = arrayOf("https://megacloud.tv", "https://rapid-cloud.co")
-        private val SOURCES_URL = arrayOf("/embed-2/v2/e-1/getSources?id=", "/ajax/embed-6-v2/getSources?id=")
-        private val SOURCES_SPLITTER = arrayOf("/e-1/", "/embed-6-v2/")
+        private val SOURCES_URL = arrayOf("/embed-2/v2/e-1/getSources?id=", "/embed-2/v2/e-1/getSources?id=")
+        private val SOURCES_SPLITTER = arrayOf("/e-1/", "/e-1/")
         private val SOURCES_KEY = arrayOf("1", "6")
         private const val E1_SCRIPT_URL = "/js/player/a/v2/pro/embed-1.min.js"
         private const val E6_SCRIPT_URL = "/js/player/e6-player-v2.min.js"
@@ -211,7 +211,7 @@ class MegaCloudExtractor(
                 if (!response.isSuccessful) throw IllegalStateException("Failed to fetch keys.json")
                 val jsonStr = response.body.string()
                 if (jsonStr.isEmpty()) throw IllegalStateException("keys.json is empty")
-                val key = json.decodeFromString<Map<String, String>>(jsonStr)["mega"]
+                val key = json.decodeFromString<Map<String, String>>(jsonStr)["vidstr"]
                     ?: throw IllegalStateException("Mega key not found in keys.json")
                 Log.i("MegaCloudExtractor", "Using Mega Key: $key")
                 megaKey = key

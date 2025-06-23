@@ -1,5 +1,6 @@
 package eu.kanade.tachiyomi.animeextension.en.nineanimetv
 
+import android.util.Log
 import eu.kanade.tachiyomi.animesource.model.AnimesPage
 import eu.kanade.tachiyomi.animesource.model.SAnime
 import eu.kanade.tachiyomi.animesource.model.Video
@@ -96,6 +97,7 @@ class NineAnimeTv : ZoroTheme(
     private val megaCloudExtractor by lazy { MegaCloudExtractor(client, headers, preferences) }
 
     override fun extractVideo(server: VideoData): List<Video> {
+        Log.e("NineAnimeTv", "extractVideo: ${server.name} ${server.link} ${server.type}")
         return when (server.name) {
             "DouVideo", "Vidstreaming", "Vidcloud" -> megaCloudExtractor.getVideosFromUrl(server.link, server.type, server.name)
             else -> emptyList()
