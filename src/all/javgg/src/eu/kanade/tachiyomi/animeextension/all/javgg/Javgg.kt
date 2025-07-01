@@ -35,6 +35,8 @@ class Javgg : ConfigurableAnimeSource, AnimeHttpSource() {
 
     override val supportsLatest = true
 
+    override val supportsRelatedAnimes = false
+
     private val preferences: SharedPreferences by lazy {
         Injekt.get<Application>().getSharedPreferences("source_$id", 0x0000)
     }
@@ -127,6 +129,23 @@ class Javgg : ConfigurableAnimeSource, AnimeHttpSource() {
             }
         }
         return AnimesPage(animeList, nextPage)
+    }
+
+    override fun String.stripKeywordForRelatedAnimes(): List<String> {
+        val regexWhitespace = Regex("\\s+")
+        val regexSpecialCharacters =
+            Regex("([-!~#$%^&*+_|/\\\\,?:;'“”‘’\"<>(){}\\[\\]。・～：—！？、―«»《》〘〙【】「」｜]|\\s-|-\\s|\\s\\.|\\.\\s)")
+        val regexNumberOnly = Regex("^\\d+$")
+
+        return replace(regexSpecialCharacters, " ")
+            .split(regexWhitespace)
+            .map {
+                // remove number only
+                it.replace(regexNumberOnly, "")
+                    .lowercase()
+            }
+            // exclude single character
+            .filter { it.length > 1 }
     }
 
     override fun episodeListParse(response: Response): List<SEpisode> {
