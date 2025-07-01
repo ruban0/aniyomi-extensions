@@ -16,7 +16,7 @@ import eu.kanade.tachiyomi.lib.playlistutils.PlaylistUtils
 import eu.kanade.tachiyomi.lib.unpacker.Unpacker
 import eu.kanade.tachiyomi.network.GET
 import eu.kanade.tachiyomi.util.asJsoup
-import keiyoushi.utils.getPreferences
+import keiyoushi.utils.getPreferencesLazy
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.Request
 import okhttp3.Response
@@ -41,7 +41,7 @@ class MissAV : AnimeHttpSource(), ConfigurableAnimeSource {
         PlaylistUtils(client, headers)
     }
 
-    private val preferences = getPreferences()
+    private val preferences by getPreferencesLazy()
 
     override fun popularAnimeRequest(page: Int) =
         GET("$baseUrl/en/today-hot?page=$page", headers)
