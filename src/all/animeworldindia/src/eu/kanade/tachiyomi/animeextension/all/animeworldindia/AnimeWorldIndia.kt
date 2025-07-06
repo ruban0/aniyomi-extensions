@@ -244,3 +244,4 @@ class AnimeWorldIndia(
         private val PREF_QUALITY_VALUES = arrayOf("1080", "720", "480", "360", "240")
     }
 }
+
